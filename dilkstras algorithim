@@ -1,0 +1,83 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <climits>
+using namespace std;
+
+// Struct to represent a node and its edges
+struct Node {
+    int id;
+    vector<pair<int, int>> edges; // Edge: <id of adjacent node, weight of edge>
+    int distance = INT_MAX; // Tentative distance
+    int parent = -1; // Parent node in the shortest path
+};
+
+// Comparator for the priority queue
+struct CompareNodes {
+    bool operator()(Node const& n1, Node const& n2) {
+        return n1.distance > n2.distance;
+    }
+};
+
+// Dijkstra's algorithm
+void dijkstra(vector<Node>& graph, int start, int end) {
+    priority_queue<Node, vector<Node>, CompareNodes> pq;
+    graph[start].distance = 0;
+    pq.push(graph[start]);
+    while (!pq.empty()) {
+        Node curr = pq.top();
+        pq.pop();
+        if (curr.id == end) { // Reached the destination node
+            break;
+        }
+        for (auto edge : curr.edges) {
+            Node& adj = graph[edge.first];
+            int new_dist = curr.distance + edge.second;
+            if (new_dist < adj.distance) {
+                adj.distance = new_dist;
+                adj.parent = curr.id;
+                pq.push(adj);
+            }
+        }
+    }
+    if (graph[end].distance == INT_MAX) { // Destination is unreachable
+        cout << "No path from node " << start << " to node " << end << endl;
+    } else { // Destination is reachable
+        cout << "Shortest path cost: " << graph[end].distance << endl;
+        cout << "Path: ";
+        vector<int> path;
+        int curr = end;
+        while (curr != -1) {
+            path.push_back(curr);
+            curr = graph[curr].parent;
+        }
+        reverse(path.begin(), path.end());
+        for (int i = 0; i < path.size(); i++) {
+            cout << path[i];
+            if (i != path.size() - 1) {
+                cout << " -> ";
+            }
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    // Create the graph (represented as an adjacency list)
+    int n, m; // Number of nodes and edges
+    cin >> n >> m;
+    vector<Node> graph(n);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; // Edge: u -> v with weight w
+        cin >> u >> v >> w;
+        graph[u].edges.push_back({v, w});
+        graph[v].edges.push_back({u, w}); // Assuming undirected graph
+    }
+    // Get user input for start and end nodes
+    int start, end;
+    cin >> start >> end;
+    // Run Dijkstra's algorithm
+    dijkstra(graph, start, end);
+    return 0;
+}
